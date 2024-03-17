@@ -1,0 +1,13 @@
+{
+  "name": "@/common-application-layer",
+  "private": "true",
+  "type": "module",
+  "types": "./dist/**/*.d.ts",
+  "exports": {
+    "./type-is": "./dist/type-is.js"
+  },
+  "scripts": {
+    "build": "tsup **/ !**/*.spec.ts !dist/ --env.NODE_ENV production --sourcemap --format esm --dts --treeshake --target node20 --clean --out-dir ./dist",
+    "test": "vitest --watch=false"
+  }
+}

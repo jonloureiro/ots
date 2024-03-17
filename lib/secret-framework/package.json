@@ -1,0 +1,13 @@
+{
+  "name": "@/secret-framework",
+  "private": "true",
+  "type": "module",
+  "types": "./dist/**/*.d.ts",
+  "exports": {
+    "./module": "./dist/nestjs/secret.module.js"
+  },
+  "scripts": {
+    "build": "tsup-node  nestjs/ typeorm/ !**/*.spec.ts --env.NODE_ENV production --sourcemap --format esm --dts --treeshake --target node20 --clean --out-dir ./dist",
+    "test": "vitest --watch=false"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@/secret-application",
+  "private": "true",
+  "type": "module",
+  "types": "./dist/**/*.d.ts",
+  "exports": {
+    "./service/*": "./dist/service/*.js"
+  },
+  "scripts": {
+    "build": "tsup service/ mapper/ !**/*.spec.ts --env.NODE_ENV production --sourcemap --format esm --dts --treeshake --target node20 --clean --out-dir ./dist",
+    "test": "vitest --watch=false"
+  }
+}

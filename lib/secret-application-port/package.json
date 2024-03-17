@@ -1,0 +1,15 @@
+{
+  "name": "@/secret-application-port",
+  "private": "true",
+  "type": "module",
+  "types": "./dist/**/*.d.ts",
+  "exports": {
+    "./dto/*": "./dist/dto/*.js",
+    "./service/*": "./dist/service/*.js",
+    "./repository/*": "./dist/repository/*.js"
+  },
+  "scripts": {
+    "build": "tsup dto/ service/ repository/ !**/*.spec.ts --env.NODE_ENV production --sourcemap --format esm --dts --treeshake --target node20 --clean --out-dir ./dist",
+    "test": "vitest --watch=false"
+  }
+}

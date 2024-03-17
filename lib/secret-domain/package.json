@@ -1,0 +1,14 @@
+{
+  "name": "@/secret-domain",
+  "private": "true",
+  "type": "module",
+  "types": "./dist/**/*.d.ts",
+  "exports": {
+    "./entity/*": "./dist/entity/*.js",
+    "./value-object/*": "./dist/value-object/*.js"
+  },
+  "scripts": {
+    "build": "tsup entity/ value-object/ !**/*.spec.ts --env.NODE_ENV production --sourcemap --format esm --dts --treeshake --target node20 --clean --out-dir ./dist",
+    "test": "vitest --watch=false"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@/ots-http-server",
+  "private": "true",
+  "type": "module",
+  "main": "../../dist/ots-http-server/main.mjs",
+  "scripts": {
+    "start": "node -r source-map-support/register .",
+    "dev": "tsx watch main.ts",
+    "build": "tsup-node main.ts --env.NODE_ENV production --sourcemap --format esm --treeshake --target node20 --clean --out-dir ../../dist/ots-http-server",
+    "test": "vitest --watch=false"
+  }
+}
