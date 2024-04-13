@@ -1,34 +1,34 @@
 {
   "private": true,
   "engines": {
-    "node": "= 20.11.1",
+    "node": "= 20.12.2",
     "pnpm": ">= 8.15"
   },
   "dependencies": {
-    "@/common-application-layer": "workspace:*",
+    "@/base": "workspace:*",
     "@/secret-application": "workspace:*",
     "@/secret-application-port": "workspace:*",
     "@/secret-domain": "workspace:*",
     "@/secret-framework": "workspace:*",
-    "@nestjs/common": "^10.3.3",
-    "@nestjs/core": "^10.3.3",
-    "@nestjs/platform-express": "^10.3.3",
+    "@nestjs/common": "^10.3.7",
+    "@nestjs/core": "^10.3.7",
+    "@nestjs/platform-express": "^10.3.7",
     "@nestjs/typeorm": "^10.0.2",
-    "pg": "^8.11.3",
-    "reflect-metadata": "^0.2.1",
+    "pg": "^8.11.5",
+    "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.6.1",
-    "@nestjs/testing": "^10.3.3",
-    "@swc/core": "^1.4.8",
+    "@biomejs/biome": "1.6.4",
+    "@nestjs/testing": "^10.3.7",
+    "@swc/core": "^1.4.13",
     "source-map-support": "^0.5.21",
     "supertest": "^6.3.4",
     "tsup": "^8.0.2",
-    "tsx": "^4.7.1",
-    "typescript": "^5.4.2",
-    "vitest": "^1.4.0"
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.0"
   }
 }
