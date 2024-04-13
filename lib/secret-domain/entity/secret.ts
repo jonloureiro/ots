@@ -3,6 +3,22 @@ import { Email } from "../value-object/email.js";
 import { ExpirationDate } from "../value-object/expiration-date.js";
 import { SecretId } from "../value-object/secret-id.js";
 
+export const SecretConstants = {
+  MAX_SECRET_LENGTH: 10000,
+  MAX_ATTEMPTS: 3,
+} as const;
+
+export const SecretErrors = {
+  EMAIL_AND_EMAIL_ERROR: new Error("Email or Email Domain must be provided, not both."),
+  SECRET_MAX_LENGTH_ERROR: new Error(`Secret must be no more than ${SecretConstants.MAX_SECRET_LENGTH} characters.`),
+  ATTEMPTS_MAX_ERROR: new Error(`Attempts must be less than ${SecretConstants.MAX_ATTEMPTS}.`),
+  ATTEMPTS_MIN_ERROR: new Error("Attempts must be greater than 0."),
+} as const;
+
+const SecretInternalErrors = {
+  UNEXPECTED_ERROR: new Error("An unexpected error occurred when creating the secret."),
+};
+
 export type SecretProps = {
   id: string;
   secret: string;
@@ -12,77 +28,113 @@ export type SecretProps = {
   expirationDate?: Date;
 };
 
-/**
- * Secret is an entity that represents a secret that can be shared.
- */
 export class Secret {
-  static readonly MAX_SECRET_LENGTH = 10000;
-  static readonly MAX_ATTEMPTS = 3;
+  #error;
+  #id;
+  #secret;
+  #email;
+  #emailDomain;
+  #remainingAttempts;
+  #expirationDate;
 
-  private errors: unknown[] = [];
+  get id(): SecretId {
+    if (this.#id == null) throw SecretInternalErrors.UNEXPECTED_ERROR;
+    return this.#id;
+  }
 
-  readonly id!: SecretId;
-  readonly secret: string;
-  readonly email?: Email;
-  readonly emailDomain?: EmailDomain;
-  readonly remainingAttempts: number;
-  readonly expirationDate!: ExpirationDate;
+  get secret(): string {
+    return this.#secret;
+  }
 
-  /**
-   * @throws {AggregateError} if props are invalid
-   */
-  constructor({ id, secret, email, emailDomain, remainingAttempts, expirationDate }: SecretProps) {
-    this.secret = secret;
-    this.remainingAttempts = remainingAttempts ?? Secret.MAX_ATTEMPTS;
-    this.validateEmailOrEmailDomain(email, emailDomain);
-    this.validateSecretMaxLength();
-    this.validateAttempts();
+  get email(): Email | null {
+    return this.#email;
+  }
 
-    try {
-      this.id = new SecretId(id);
-    } catch (error) {
-      this.errors.push(error);
+  get emailDomain(): EmailDomain | null {
+    return this.#emailDomain;
+  }
+
+  get remainingAttempts(): number {
+    return this.#remainingAttempts;
+  }
+
+  get expirationDate(): ExpirationDate {
+    if (this.#expirationDate == null) throw SecretInternalErrors.UNEXPECTED_ERROR;
+    return this.#expirationDate;
+  }
+
+  static new(props: SecretProps): Result<Secret> {
+    const secret = new Secret(props);
+    if (secret.#error != null) return [null, secret.#error];
+    return [secret, null];
+  }
+
+  private constructor(props: SecretProps) {
+    let error: Error | null;
+    const errors = [];
+
+    this.#email = null;
+    this.#emailDomain = null;
+
+    this.#secret = props.secret;
+    error = this.#validateSecretMaxLength();
+    if (error != null) errors.push(error);
+
+    this.#remainingAttempts = props.remainingAttempts ?? SecretConstants.MAX_ATTEMPTS;
+    error = this.#validateAttempts();
+    if (error != null) errors.push(error);
+
+    if (props.email != null && props.emailDomain == null) {
+      const [email, error] = Email.new(props.email);
+      if (error != null) errors.push(error);
+      this.#email = email;
     }
 
-    if (email != null && emailDomain == null)
-      try {
-        this.email = new Email(email);
-      } catch (error) {
-        this.errors.push(error);
-      }
-
-    if (email == null && emailDomain != null)
-      try {
-        this.emailDomain = new EmailDomain(emailDomain);
-      } catch (error) {
-        this.errors.push(error);
-      }
-
-    console.log("expirationDate", expirationDate);
-    try {
-      this.expirationDate = new ExpirationDate(expirationDate);
-    } catch (error) {
-      this.errors.push(error);
+    if (props.email == null && props.emailDomain != null) {
+      const [emailDomain, error] = EmailDomain.new(props.emailDomain);
+      if (error != null) errors.push(error);
+      this.#emailDomain = emailDomain;
     }
 
-    if (this.errors.length) throw new AggregateError(this.errors, "Invalid secret");
+    error = this.#validateEmailOrEmailDomain(props.email, props.emailDomain);
+    if (error != null) errors.push(error);
+
+    {
+      const [expirationDate, error] = ExpirationDate.new(props.expirationDate);
+      if (error != null) errors.push(error);
+      this.#expirationDate = expirationDate;
+    }
+
+    {
+      const [id, error] = SecretId.new(props.id);
+      if (error != null) errors.push(error);
+      this.#id = id;
+    }
+
+    if (errors.length > 0) this.#error = AggregateError(errors, "Invalid secret");
   }
 
-  private validateEmailOrEmailDomain(email?: string, emailDomain?: string) {
-    if (email != null && emailDomain != null) this.errors.push(EMAIL_AND_EMAIL_ERROR);
+  #validateEmailOrEmailDomain(email?: string, emailDomain?: string): Error | null {
+    if (email != null && emailDomain != null) {
+      return SecretErrors.EMAIL_AND_EMAIL_ERROR;
+    }
+    return null;
   }
 
-  private validateSecretMaxLength() {
-    if (this.secret.length > Secret.MAX_SECRET_LENGTH) this.errors.push(SECRET_MAX_LENGTH_ERROR);
+  #validateSecretMaxLength(): Error | null {
+    if (this.#secret.length > SecretConstants.MAX_SECRET_LENGTH) {
+      return SecretErrors.SECRET_MAX_LENGTH_ERROR;
+    }
+    return null;
   }
 
-  private validateAttempts() {
-    if (this.remainingAttempts > Secret.MAX_ATTEMPTS) this.errors.push(ATTEMPTS_MAX_ERROR);
-    if (this.remainingAttempts <= 0) this.errors.push(ATTEMPTS_MIN_ERROR);
+  #validateAttempts(): Error | null {
+    if (this.#remainingAttempts > SecretConstants.MAX_ATTEMPTS) {
+      return SecretErrors.ATTEMPTS_MAX_ERROR;
+    }
+    if (this.#remainingAttempts <= 0) {
+      return SecretErrors.ATTEMPTS_MIN_ERROR;
+    }
+    return null;
   }
 }
-
-export const EMAIL_AND_EMAIL_ERROR = new Error("Email or Email Domain must be provided, not both.");
-export const SECRET_MAX_LENGTH_ERROR = new Error(`Secret must be no more than ${Secret.MAX_SECRET_LENGTH} characters.`);
-export const ATTEMPTS_MAX_ERROR = new Error(`Attempts must be less than ${Secret.MAX_ATTEMPTS}.`);
-export const ATTEMPTS_MIN_ERROR = new Error("Attempts must be greater than 0.");

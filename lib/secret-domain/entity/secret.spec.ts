@@ -1,9 +1,9 @@
 import { assert, describe, expect, it } from "vitest";
 
-import { EMAIL_AND_EMAIL_ERROR, SECRET_MAX_LENGTH_ERROR, Secret, type SecretProps } from "./secret.js";
+import { Secret, SecretConstants, SecretErrors, type SecretProps } from "./secret.js";
 
 describe("secret", () => {
-  const greaterThanMaxSecretLength = "a".repeat(Secret.MAX_SECRET_LENGTH + 1);
+  const greaterThanMaxSecretLength = "a".repeat(SecretConstants.MAX_SECRET_LENGTH + 1);
   const validProps: SecretProps = {
     id: "1234567890123456",
     secret: "encryptedSecret",
@@ -11,27 +11,26 @@ describe("secret", () => {
   };
 
   it("should not throw any errors if the id, email, and encryptedSecret are valid", () => {
-    expect(() => new Secret(validProps)).not.toThrow();
+    const [secret, error] = Secret.new(validProps);
+
+    expect(error).toBeNull();
+    expect(secret).toBeInstanceOf(Secret);
   });
 
   it("should throw an error if both email and emailDomain are provided", () => {
-    try {
-      new Secret({ ...validProps, emailDomain: "example.com" });
-      assert.fail();
-    } catch (error) {
-      if (!(error instanceof AggregateError)) assert.fail();
-      expect(error.errors).toContain(EMAIL_AND_EMAIL_ERROR);
-    }
+    const [secret, error] = Secret.new({ ...validProps, emailDomain: "example.com" });
+
+    expect(secret).toBeNull();
+    expect(error).toBeInstanceOf(AggregateError);
+    expect((error as AggregateError).errors).toContain(SecretErrors.EMAIL_AND_EMAIL_ERROR);
   });
 
   it("should throw an error if the secret is more than 10000 characters", () => {
-    try {
-      new Secret({ ...validProps, secret: greaterThanMaxSecretLength });
-      assert.fail();
-    } catch (error) {
-      if (!(error instanceof AggregateError)) assert.fail();
-      expect(error.errors).toContain(SECRET_MAX_LENGTH_ERROR);
-    }
+    const [secret, error] = Secret.new({ ...validProps, secret: greaterThanMaxSecretLength });
+
+    expect(secret).toBeNull();
+    expect(error).toBeInstanceOf(AggregateError);
+    expect((error as AggregateError).errors).toContain(SecretErrors.SECRET_MAX_LENGTH_ERROR);
   });
 
   it.each([
@@ -69,12 +68,10 @@ describe("secret", () => {
       },
     ],
   ])("should throw an error if %s", (_, testCase) => {
-    try {
-      new Secret(testCase.props);
-      assert.fail();
-    } catch (error) {
-      if (!(error instanceof AggregateError)) assert.fail();
-      expect(error.errors).toHaveLength(testCase.errorLength);
-    }
+    const [secret, error] = Secret.new(testCase.props);
+
+    expect(secret).toBeNull();
+    expect(error).toBeInstanceOf(AggregateError);
+    expect((error as AggregateError).errors).toHaveLength(testCase.errorLength);
   });
 });

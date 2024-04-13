@@ -1,34 +1,49 @@
+export const ExpirationDateConstants = {
+  DEFAULT_EXPIRES_IN_DAYS: 7,
+  MAX_EXPIRES_IN_DAYS: 7,
+} as const;
+
+export const ExpirationDateErrors = {
+  MORE_THAN_DAYS_LIMIT_EXPIRATION_DATE_ERROR: new Error(
+    `Expiration date must be no more than ${ExpirationDateConstants.MAX_EXPIRES_IN_DAYS} days in the future.`,
+  ),
+  IN_PAST_EXPIRATION_DATE_ERROR: new Error(
+    `Expiration date must be in the future and no more than ${ExpirationDateConstants.MAX_EXPIRES_IN_DAYS} days in the future.`,
+  ),
+} as const;
+
 export class ExpirationDate {
-  static readonly DEFAULT_EXPIRES_IN_DAYS = 7;
-  static readonly MAX_EXPIRES_IN_DAYS = 7;
-  readonly value: Date;
+  #value;
+  #datetime;
+  #error;
 
-  /**
-   * @throws {IN_PAST_EXPIRATION_DATE_ERROR} If expiration date is in the past
-   * @throws {MORE_THAN_DAYS_LIMIT_EXPIRATION_DATE_ERROR} If expiration date is more than days limit in the future
-   */
-  constructor(value?: Date) {
-    this.value = value ?? ExpirationDate.defaultExpirationDate();
-    this.validate();
+  get value(): Date {
+    return this.#value;
   }
 
-  private validate(): void {
-    const now = new Date();
-    const dateInSevenDays = new Date(new Date().setDate(now.getDate() + 7));
-    if (this.value < now) throw IN_PAST_EXPIRATION_DATE_ERROR;
-    if (this.value > dateInSevenDays) throw MORE_THAN_DAYS_LIMIT_EXPIRATION_DATE_ERROR;
+  static new(value?: Date, datetime?: Datetime): Result<ExpirationDate> {
+    const expirationDate = new ExpirationDate(value, datetime);
+    if (expirationDate.#error != null) return [null, expirationDate.#error];
+    return [expirationDate, null];
   }
 
-  private static defaultExpirationDate(): Date {
-    const date = new Date();
-    date.setDate(date.getDate() + ExpirationDate.DEFAULT_EXPIRES_IN_DAYS);
+  private constructor(value?: Date, datetime?: Datetime) {
+    this.#datetime = datetime ?? Date;
+    this.#value = value ?? ExpirationDate.#defaultExpirationDate(this.#datetime);
+    this.#error = this.#validate();
+  }
+
+  #validate(): Error | undefined {
+    const now = new Date(this.#datetime.now());
+    const dateInSevenDays = new Date(now);
+    dateInSevenDays.setUTCDate(now.getUTCDate() + 7);
+    if (this.value < now) return ExpirationDateErrors.IN_PAST_EXPIRATION_DATE_ERROR;
+    if (this.value > dateInSevenDays) return ExpirationDateErrors.MORE_THAN_DAYS_LIMIT_EXPIRATION_DATE_ERROR;
+  }
+
+  static #defaultExpirationDate(datetime: Datetime): Date {
+    const date = new Date(datetime.now());
+    date.setUTCDate(date.getUTCDate() + ExpirationDateConstants.DEFAULT_EXPIRES_IN_DAYS);
     return date;
   }
 }
-
-export const MORE_THAN_DAYS_LIMIT_EXPIRATION_DATE_ERROR = new Error(
-  `Expiration date must be no more than ${ExpirationDate.MAX_EXPIRES_IN_DAYS} days in the future.`,
-);
-export const IN_PAST_EXPIRATION_DATE_ERROR = new Error(
-  `Expiration date must be in the future and no more than ${ExpirationDate.MAX_EXPIRES_IN_DAYS} days in the future.`,
-);

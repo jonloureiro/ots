@@ -1,14 +1,27 @@
+export const SecretIdErrors = {
+  INVALID_SECRET_ID_ERROR: new Error("Secret id is invalid"),
+} as const;
+
 export class SecretId {
-  /**
-   * @throws {INVALID_SECRET_ID_ERROR} If secret id is invalid
-   */
-  constructor(readonly value: string) {
-    this.validate();
+  #value;
+  #error;
+
+  get value(): string {
+    return this.#value;
   }
 
-  private validate() {
-    if (this.value.length !== 16) throw INVALID_SECRET_ID_ERROR;
+  static new(value: string): Result<SecretId> {
+    const secretId = new SecretId(value);
+    if (secretId.#error != null) return [null, secretId.#error];
+    return [secretId, null];
+  }
+
+  private constructor(value: string) {
+    this.#value = value;
+    this.#error = this.#validate();
+  }
+
+  #validate(): Error | undefined {
+    if (this.value.length !== 16) return SecretIdErrors.INVALID_SECRET_ID_ERROR;
   }
 }
-
-export const INVALID_SECRET_ID_ERROR = new Error("Secret id is invalid");
