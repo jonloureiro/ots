@@ -2,11 +2,11 @@ import { assert, describe, expect, it } from "vitest";
 
 import { Secret, SecretConstants, SecretErrors, type SecretProps } from "./secret.js";
 
-describe("secret", () => {
+describe("Secret", () => {
   const greaterThanMaxSecretLength = "a".repeat(SecretConstants.MAX_SECRET_LENGTH + 1);
   const validProps: SecretProps = {
     id: "1234567890123456",
-    secret: "encryptedSecret",
+    content: "encryptedSecret",
     email: "test@example.com",
   };
 
@@ -26,7 +26,7 @@ describe("secret", () => {
   });
 
   it("should throw an error if the secret is more than 10000 characters", () => {
-    const [secret, error] = Secret.new({ ...validProps, secret: greaterThanMaxSecretLength });
+    const [secret, error] = Secret.new({ ...validProps, content: greaterThanMaxSecretLength });
 
     expect(secret).toBeNull();
     expect(error).toBeInstanceOf(AggregateError);
@@ -62,7 +62,7 @@ describe("secret", () => {
           id: "invalid",
           email: "test@invalid",
           expirationDate: new Date(0),
-          secret: greaterThanMaxSecretLength,
+          content: greaterThanMaxSecretLength,
         },
         errorLength: 4,
       },

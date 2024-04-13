@@ -21,7 +21,7 @@ const SecretInternalErrors = {
 
 export type SecretProps = {
   id: string;
-  secret: string;
+  content: string;
   email?: string;
   emailDomain?: string;
   remainingAttempts?: number;
@@ -31,7 +31,7 @@ export type SecretProps = {
 export class Secret {
   #error;
   #id;
-  #secret;
+  #content;
   #email;
   #emailDomain;
   #remainingAttempts;
@@ -42,8 +42,8 @@ export class Secret {
     return this.#id;
   }
 
-  get secret(): string {
-    return this.#secret;
+  get content(): string {
+    return this.#content;
   }
 
   get email(): Email | null {
@@ -76,7 +76,7 @@ export class Secret {
     this.#email = null;
     this.#emailDomain = null;
 
-    this.#secret = props.secret;
+    this.#content = props.content;
     error = this.#validateSecretMaxLength();
     if (error != null) errors.push(error);
 
@@ -122,7 +122,7 @@ export class Secret {
   }
 
   #validateSecretMaxLength(): Error | null {
-    if (this.#secret.length > SecretConstants.MAX_SECRET_LENGTH) {
+    if (this.#content.length > SecretConstants.MAX_SECRET_LENGTH) {
       return SecretErrors.SECRET_MAX_LENGTH_ERROR;
     }
     return null;
