@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Email, EmailErrors } from "./email.js";
 
-describe("EmailValueObject", () => {
+describe("Email", () => {
   it("should return same value passed to constructor", () => {
     const validEmail = "valid_email@domain.com";
     const [email, error] = Email.new(validEmail);

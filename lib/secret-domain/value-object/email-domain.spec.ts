@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from "vitest";
 import { EmailDomain, EmailDomainErrors } from "./email-domain.js";
 
-describe("EmailValueObject", () => {
+describe("EmailDomain", () => {
   it("should return same value passed to constructor", () => {
     const validEmailDomain1 = "@domain.com";
     const validEmailDomain2 = "domain.com";
